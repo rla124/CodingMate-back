@@ -7,7 +7,9 @@ import com.creativesemester.SejongCodingMate.domain.member.dto.request.MemberIdR
 import com.creativesemester.SejongCodingMate.domain.member.dto.request.MemberRequestDto;
 import com.creativesemester.SejongCodingMate.domain.member.dto.response.MemberResponseDto;
 import com.creativesemester.SejongCodingMate.domain.member.entity.Member;
+import com.creativesemester.SejongCodingMate.domain.member.entity.RefreshToken;
 import com.creativesemester.SejongCodingMate.domain.member.repository.MemberRepository;
+import com.creativesemester.SejongCodingMate.domain.member.repository.RefreshTokenRepository;
 import com.creativesemester.SejongCodingMate.domain.story.entity.Story;
 import com.creativesemester.SejongCodingMate.domain.story.repository.StoryRepository;
 import com.creativesemester.SejongCodingMate.global.jwt.JwtUtil;
@@ -28,112 +30,146 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberService {
 
-    private final JwtUtil jwtUtil;
-    private final MemberRepository memberRepository;
-    private final StoryRepository storyRepository;
-    private final ChapterRepository chapterRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final MailService mailService;
+	private final JwtUtil jwtUtil;
+	private final MemberRepository memberRepository;
+	private final StoryRepository storyRepository;
+	private final ChapterRepository chapterRepository;
+	private final RefreshTokenRepository refreshTokenRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final MailService mailService;
 
-    // 1. 회원 가입
-    @Transactional
-    public ResponseEntity<GlobalResponseDto> signUp(MemberRequestDto memberRequestDto) {
+	// 1. 회원 가입
+	@Transactional
+	public ResponseEntity<GlobalResponseDto> signUp(MemberRequestDto memberRequestDto) {
 
-        Optional<Member> member = memberRepository.findByMemberId(memberRequestDto.getMemberId());
+		Optional<Member> member = memberRepository.findByMemberId(memberRequestDto.getMemberId());
 
-        if (member.isPresent()) {
-            return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.USER_EXIST));
-        }
+		if (member.isPresent()) {
+			return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.USER_EXIST));
+		}
 
-        Optional<Chapter> chapter = chapterRepository.findById(1L);
+		Optional<Chapter> chapter = chapterRepository.findById(1L);
 
-        if (chapter.isEmpty()) {
-            return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.CHAPTER_NOT_FOUND));
-        }
+		if (chapter.isEmpty()) {
+			return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.CHAPTER_NOT_FOUND));
+		}
 
-        Optional<Story> story = storyRepository.findById(1L);
+		Optional<Story> story = storyRepository.findById(1L);
 
-        if (story.isEmpty()) {
-            return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.STORY_NOT_FOUND));
-        }
+		if (story.isEmpty()) {
+			return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.STORY_NOT_FOUND));
+		}
 
-        String encodedPassword = passwordEncoder.encode(memberRequestDto.getPassword());
-        memberRepository.save(Member.of(memberRequestDto.getMemberId(), encodedPassword, story.get(), chapter.get(), false, "User"));
-        return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.SIGN_UP_SUCCESS));
-    }
+		String encodedPassword = passwordEncoder.encode(memberRequestDto.getPassword());
+		memberRepository.save(Member.of(memberRequestDto.getMemberId(), encodedPassword, story.get(), chapter.get(), false, "User"));
+		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.SIGN_UP_SUCCESS));
+	}
 
-    public ResponseEntity<GlobalResponseDto> login(MemberRequestDto memberRequestDto, HttpServletResponse response) {
+	public ResponseEntity<GlobalResponseDto> login(MemberRequestDto memberRequestDto, HttpServletResponse response) {
 
-        Optional<Member> member = memberRepository.findByMemberId(memberRequestDto.getMemberId());
+		Optional<Member> optionalMember = memberRepository.findByMemberId(memberRequestDto.getMemberId());
 
-        if (member.isEmpty()) {
-            return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND));
-        }
+		if (optionalMember.isEmpty()) {
+			return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND));
+		}
 
-        if (!passwordEncoder.matches(memberRequestDto.getPassword(), member.get().getPassword())) {
-            return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.PASSWORD_MISMATCH));
-        }
+		Member member = optionalMember.get();
 
-        TokenDto tokenDto = new TokenDto(jwtUtil.createToken(memberRequestDto.getMemberId()));
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, tokenDto.getAccessToken());
+		if (!passwordEncoder.matches(memberRequestDto.getPassword(), member.getPassword())) {
+			return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.PASSWORD_MISMATCH));
+		}
 
-        return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.LOG_IN_SUCCESS,
-                MemberResponseDto.of(member.get().getStory().getId(), member.get().getChapter().getId(),
-                        member.get().getHasTemporaryPassword(), member.get().getName())));
-    }
+		final String loginAccessToken = jwtUtil.createAccessToken(memberRequestDto.getMemberId());
+		final String loginRefreshToken = jwtUtil.createRefreshToken(memberRequestDto.getMemberId());
 
-    @Transactional
-    public ResponseEntity<GlobalResponseDto> changePassword(MemberRequestDto memberRequestDto) {
+		jwtUtil.saveRefreshTokenToRedis(member.getId(), loginRefreshToken);
 
-        Optional<Member> member = memberRepository.findByMemberId(memberRequestDto.getMemberId());
+		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.LOG_IN_SUCCESS,
+			MemberResponseDto.of(member.getStory().getId(), member.getChapter().getId(),
+				member.getHasTemporaryPassword(), member.getName(), loginAccessToken, loginRefreshToken)));
+	}
 
-        if (member.isEmpty()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND));
-        }
+	@Transactional
+	public ResponseEntity<GlobalResponseDto> changePassword(MemberRequestDto memberRequestDto) {
 
-        String encodedPassword = passwordEncoder.encode(memberRequestDto.getPassword());
-        member.get().changePassword(encodedPassword);
-        member.get().changeHasTemporaryPassword(false);
-        memberRepository.save(member.get());
+		Optional<Member> member = memberRepository.findByMemberId(memberRequestDto.getMemberId());
 
-        return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.CHANGE_PASSWORD));
-    }
+		if (member.isEmpty()) {
+			return ResponseEntity
+				.badRequest()
+				.body(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND));
+		}
 
-    @Transactional(readOnly = true)
-    public ResponseEntity<GlobalResponseDto> isExistMember(String memberId) {
+		String encodedPassword = passwordEncoder.encode(memberRequestDto.getPassword());
+		member.get().changePassword(encodedPassword);
+		member.get().changeHasTemporaryPassword(false);
+		memberRepository.save(member.get());
 
-        Optional<Member> member = memberRepository.findByMemberId(memberId);
+		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.CHANGE_PASSWORD));
+	}
 
-        if (member.isEmpty()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND, false));
-        }
+	@Transactional(readOnly = true)
+	public ResponseEntity<GlobalResponseDto> isExistMember(String memberId) {
 
-        return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.USER_EXIST, true));
-    }
+		Optional<Member> member = memberRepository.findByMemberId(memberId);
 
-    @Transactional()
-    public ResponseEntity<GlobalResponseDto> sendPasswordEmail(MemberIdRequestDto memberIdRequestDto) {
+		if (member.isEmpty()) {
+			return ResponseEntity
+				.badRequest()
+				.body(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND, false));
+		}
 
-        Optional<Member> member = memberRepository.findByMemberId(memberIdRequestDto.getMemberId());
+		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.USER_EXIST, true));
+	}
 
-        if (member.isEmpty()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND, false));
-        }
+	@Transactional()
+	public ResponseEntity<GlobalResponseDto> sendPasswordEmail(MemberIdRequestDto memberIdRequestDto) {
 
-        String temporaryPassword = mailService.createMail(member.get().getMemberId());
+		Optional<Member> member = memberRepository.findByMemberId(memberIdRequestDto.getMemberId());
 
-        String encodedPassword = passwordEncoder.encode(temporaryPassword);
-        member.get().changePassword(encodedPassword);
-        member.get().changeHasTemporaryPassword(Boolean.TRUE);
-        memberRepository.save(member.get());
+		if (member.isEmpty()) {
+			return ResponseEntity
+				.badRequest()
+				.body(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND, false));
+		}
 
-        return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.SEND_TEMPORARY_PASSWORD));
+		String temporaryPassword = mailService.createMail(member.get().getMemberId());
 
-    }
+		String encodedPassword = passwordEncoder.encode(temporaryPassword);
+		member.get().changePassword(encodedPassword);
+		member.get().changeHasTemporaryPassword(Boolean.TRUE);
+		memberRepository.save(member.get());
+
+		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.SEND_TEMPORARY_PASSWORD));
+
+	}
+
+	public ResponseEntity<GlobalResponseDto> reissueTokenPair(Member loginMember, TokenDto tokenDto) {
+		Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByMemberId(loginMember.getId());
+
+		if (optionalRefreshToken.isEmpty()) {
+			return ResponseEntity
+				.badRequest()
+				.body(GlobalResponseDto.of(ErrorType.REFRESH_TOKEN_NOT_EXIST, false));
+		}
+
+		final String refreshTokenFromRedis = optionalRefreshToken.get().getToken();
+		final String refreshTokenFromDto = tokenDto.getRefreshToken();
+
+		if (!refreshTokenFromDto.equals(refreshTokenFromRedis)) {
+			return ResponseEntity
+				.badRequest()
+				.body(GlobalResponseDto.of(ErrorType.REFRESH_TOKEN_MISMATCHING, false));
+		}
+
+		final String newAccessToken = jwtUtil.createAccessToken(loginMember.getMemberId());
+		final String newRefreshToken = jwtUtil.createRefreshToken(loginMember.getMemberId());
+
+		RefreshToken updatedRefreshToken = optionalRefreshToken.get();
+		updatedRefreshToken.updateToken(newRefreshToken);
+		refreshTokenRepository.save(updatedRefreshToken);
+
+		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.REISSUE_TOKEN_PAIR,
+			TokenDto.of(newAccessToken, newRefreshToken)));
+	}
 }
