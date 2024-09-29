@@ -74,8 +74,13 @@ public class MemberService {
             return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.PASSWORD_MISMATCH));
         }
 
-        TokenDto tokenDto = new TokenDto(jwtUtil.createToken(memberRequestDto.getMemberId()));
+		final String loginAccessToken = jwtUtil.createAccessToken(memberRequestDto.getMemberId());
+		final String loginRefreshToken = jwtUtil.createRefreshToken(memberRequestDto.getMemberId());
+
+        TokenDto tokenDto = new TokenDto(loginAccessToken, loginRefreshToken);
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, tokenDto.getAccessToken());
+
+		jwtUtil.saveRefreshTokenToRedis(member.get().getId(), loginRefreshToken);
 
         return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.LOG_IN_SUCCESS,
                 MemberResponseDto.of(member.get().getStory().getId(), member.get().getChapter().getId(),

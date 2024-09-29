@@ -1,5 +1,7 @@
 package com.creativesemester.SejongCodingMate.global.jwt;
 
+import com.creativesemester.SejongCodingMate.domain.member.entity.RefreshToken;
+import com.creativesemester.SejongCodingMate.domain.member.repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -29,6 +31,9 @@ public class JwtUtil {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final long ACCESS_TOKEN_TIME = 60 * 60 * 1000L;
 
+	private static final long REFRESH_TOKEN_TIME = 3 * 24 * 60 * 60 * 1000L;
+
+	private final RefreshTokenRepository refreshTokenRepository;
     private final UserDetailsService userDetailsService;
 
     @Value("${jwt.secret.key}")
@@ -50,7 +55,7 @@ public class JwtUtil {
         return null;
     }
 
-    public String createToken(String userEmail){
+    public String createAccessToken(String userEmail){
         Date date = new Date();
 
         return BEARER_PREFIX +
@@ -61,6 +66,18 @@ public class JwtUtil {
                         .signWith(key, signatureAlgorithm)
                         .compact();
     }
+
+	public String createRefreshToken(String userEmail){
+		Date date = new Date();
+
+		return BEARER_PREFIX +
+			Jwts.builder()
+				.setSubject(userEmail)
+				.setExpiration(new Date(date.getTime() + REFRESH_TOKEN_TIME))
+				.setIssuedAt(date)
+				.signWith(key, signatureAlgorithm)
+				.compact();
+	}
 
     public boolean validateToken(String token) {
         try {
@@ -86,6 +103,12 @@ public class JwtUtil {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
+
+	public void saveRefreshTokenToRedis(Long memberId, String refreshTokenValue) {
+		RefreshToken refreshToken =
+			RefreshToken.builder().memberId(memberId).token(refreshTokenValue).ttl(REFRESH_TOKEN_TIME).build();
+		refreshTokenRepository.save(refreshToken);
+	}
 
 
 }
