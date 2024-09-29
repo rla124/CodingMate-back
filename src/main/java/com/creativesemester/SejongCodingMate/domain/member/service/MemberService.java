@@ -86,7 +86,7 @@ public class MemberService {
 
 		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.LOG_IN_SUCCESS,
 			MemberResponseDto.of(member.getStory().getId(), member.getChapter().getId(),
-				member.getHasTemporaryPassword(), member.getName())));
+				member.getHasTemporaryPassword(), member.getName(), loginAccessToken, loginRefreshToken)));
 	}
 
 	@Transactional
