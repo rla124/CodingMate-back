@@ -19,6 +19,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -62,22 +66,27 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 
-        http.cors();
-        http.csrf().disable();                  // 사이트간 요청 위조를 거부.
-        http.formLogin().disable();             // FormLogin 사용하지 않음으로 거부.
 
-        // 기본 설정인 Session 방식은 사용하지 않고 JWT 방식을 사용하기 위한 설정
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.cors(withDefaults());
+        http.csrf(AbstractHttpConfigurer::disable);                  // 사이트간 요청 위조를 거부.
+        http.formLogin(AbstractHttpConfigurer::disable);             // FormLogin 사용하지 않음으로 거부.
 
         // Security 에서 허용해줄 부분
-        http.authorizeRequests()
-                .antMatchers("/api/member/**").permitAll()
-                .anyRequest().authenticated()
+        http.authorizeRequests(
+			authorize ->
+				authorize
+                .requestMatchers("/api/member/**").permitAll()
+                .anyRequest().authenticated())
+				// 기본 설정인 Session 방식은 사용하지 않고 JWT 방식을 사용하기 위한 설정
+			.sessionManagement(
+				session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Filter 단에서 생기는 오류를 잡기 위한 EntryPoint 생성
-                .and().exceptionHandling().authenticationEntryPoint(new CustomAuthenticationEntryPoint())
-                // JWT 인증/인가를 사용하기 위한 설정
-                .and().addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+			// Filter 단에서 생기는 오류를 잡기 위한 EntryPoint 생성
+			.exceptionHandling(exception ->
+				exception.authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+			)
+			// JWT 인증/인가를 사용하기 위한 설정
+			.addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
