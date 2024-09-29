@@ -20,6 +20,8 @@ public enum ErrorType {
     USER_ACCOUNT_NOT_EXIST(400,  "계정 정보가 존재하지 않습니다."),
     USER_NOT_FOUND(400, "사용자가 존재하지 않습니다."),
     PASSWORD_MISMATCH(400,  "비밀번호가 일치하지 않습니다."),
+	REFRESH_TOKEN_NOT_EXIST(400,  "리프레시 토큰이 만료되었습니다."),
+	REFRESH_TOKEN_MISMATCHING(400,  "리프레시 토큰이 일치하지 않습니다."),
 
     //Domain 관련
     PROBLEM_NOT_FOUND(400, "문제를 찾을 수 없습니다."),

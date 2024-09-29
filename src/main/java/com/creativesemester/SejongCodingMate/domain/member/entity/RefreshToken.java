@@ -12,7 +12,7 @@ public class RefreshToken {
 
 	@Id
 	private Long memberId;
-	private final String token;
+	private String token;
 	@TimeToLive
 	private final long ttl;
 
@@ -21,5 +21,9 @@ public class RefreshToken {
 		this.memberId = memberId;
 		this.token = token;
 		this.ttl = ttl;
+	}
+
+	public void updateToken(String newRefreshToken) {
+		this.token = newRefreshToken;
 	}
 }

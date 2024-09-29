@@ -7,7 +7,9 @@ import com.creativesemester.SejongCodingMate.domain.member.dto.request.MemberIdR
 import com.creativesemester.SejongCodingMate.domain.member.dto.request.MemberRequestDto;
 import com.creativesemester.SejongCodingMate.domain.member.dto.response.MemberResponseDto;
 import com.creativesemester.SejongCodingMate.domain.member.entity.Member;
+import com.creativesemester.SejongCodingMate.domain.member.entity.RefreshToken;
 import com.creativesemester.SejongCodingMate.domain.member.repository.MemberRepository;
+import com.creativesemester.SejongCodingMate.domain.member.repository.RefreshTokenRepository;
 import com.creativesemester.SejongCodingMate.domain.story.entity.Story;
 import com.creativesemester.SejongCodingMate.domain.story.repository.StoryRepository;
 import com.creativesemester.SejongCodingMate.global.jwt.JwtUtil;
@@ -32,6 +34,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final StoryRepository storyRepository;
     private final ChapterRepository chapterRepository;
+	private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
@@ -64,27 +67,28 @@ public class MemberService {
 
     public ResponseEntity<GlobalResponseDto> login(MemberRequestDto memberRequestDto, HttpServletResponse response) {
 
-        Optional<Member> member = memberRepository.findByMemberId(memberRequestDto.getMemberId());
+        Optional<Member> optionalMember = memberRepository.findByMemberId(memberRequestDto.getMemberId());
 
-        if (member.isEmpty()) {
+        if (optionalMember.isEmpty()) {
             return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.USER_NOT_FOUND));
         }
 
-        if (!passwordEncoder.matches(memberRequestDto.getPassword(), member.get().getPassword())) {
+		Member member = optionalMember.get();
+
+        if (!passwordEncoder.matches(memberRequestDto.getPassword(), member.getPassword())) {
             return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.PASSWORD_MISMATCH));
         }
 
 		final String loginAccessToken = jwtUtil.createAccessToken(memberRequestDto.getMemberId());
 		final String loginRefreshToken = jwtUtil.createRefreshToken(memberRequestDto.getMemberId());
 
-        TokenDto tokenDto = new TokenDto(loginAccessToken, loginRefreshToken);
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, tokenDto.getAccessToken());
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, loginAccessToken);
 
-		jwtUtil.saveRefreshTokenToRedis(member.get().getId(), loginRefreshToken);
+		jwtUtil.saveRefreshTokenToRedis(member.getId(), loginRefreshToken);
 
         return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.LOG_IN_SUCCESS,
-                MemberResponseDto.of(member.get().getStory().getId(), member.get().getChapter().getId(),
-                        member.get().getHasTemporaryPassword(), member.get().getName())));
+                MemberResponseDto.of(member.getStory().getId(), member.getChapter().getId(),
+					member.getHasTemporaryPassword(), member.getName())));
     }
 
     @Transactional
@@ -141,4 +145,33 @@ public class MemberService {
         return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.SEND_TEMPORARY_PASSWORD));
 
     }
+
+	public ResponseEntity<GlobalResponseDto> reissueTokenPair(Member loginMember, TokenDto tokenDto) {
+		Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByMemberId(loginMember.getId());
+
+		if (optionalRefreshToken.isEmpty()) {
+			return ResponseEntity
+				.badRequest()
+				.body(GlobalResponseDto.of(ErrorType.REFRESH_TOKEN_NOT_EXIST, false));
+		}
+
+		final String refreshTokenFromRedis = optionalRefreshToken.get().getToken();
+		final String refreshTokenFromDto = tokenDto.getRefreshToken();
+
+		if (!refreshTokenFromDto.equals(refreshTokenFromRedis)) {
+			return ResponseEntity
+				.badRequest()
+				.body(GlobalResponseDto.of(ErrorType.REFRESH_TOKEN_MISMATCHING, false));
+		}
+
+		final String newAccessToken = jwtUtil.createAccessToken(loginMember.getMemberId());
+		final String newRefreshToken = jwtUtil.createRefreshToken(loginMember.getMemberId());
+
+		RefreshToken updatedRefreshToken = optionalRefreshToken.get();
+		updatedRefreshToken.updateToken(newRefreshToken);
+		refreshTokenRepository.save(updatedRefreshToken);
+
+		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.REISSUE_TOKEN_PAIR,
+			TokenDto.of(newAccessToken, newRefreshToken)));
+	}
 }
