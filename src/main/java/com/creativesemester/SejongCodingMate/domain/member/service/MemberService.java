@@ -15,13 +15,13 @@ import com.creativesemester.SejongCodingMate.global.jwt.TokenDto;
 import com.creativesemester.SejongCodingMate.global.response.ErrorType;
 import com.creativesemester.SejongCodingMate.global.response.GlobalResponseDto;
 import com.creativesemester.SejongCodingMate.global.response.SuccessType;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 @Service
