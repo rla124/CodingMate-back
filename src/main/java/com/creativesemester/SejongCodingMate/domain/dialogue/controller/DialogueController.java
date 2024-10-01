@@ -25,7 +25,7 @@ public class DialogueController {
     // 2. 대화 단일 조회 (GET)
     @GetMapping("/{id}")
     public ResponseEntity<GlobalResponseDto> getDialogue (@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                          @PathVariable Long id){
+                                                          @PathVariable("id") Long id){
         return dialogueService.getDialogue(userDetails.getMember(), id);
     }
 
