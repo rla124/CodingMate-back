@@ -1,4 +1,7 @@
 spring:
   profiles:
-    include: secret
-    active: prod,dev
+    group:
+      dev: "dev"
+      prod: "prod"
+    include:
+      - secret
