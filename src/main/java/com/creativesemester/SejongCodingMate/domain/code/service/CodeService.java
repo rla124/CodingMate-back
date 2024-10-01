@@ -86,7 +86,7 @@ public class CodeService {
 
 
         Object[] result = compilerServiceV2.runCode(executeCode, input, code.get().getAnswer());
-        if (result[0].getClass() == ErrorType.class) {
+        if (result[0] instanceof ErrorType) {
             return ResponseEntity
                     .badRequest()
                     .body(GlobalResponseDto.of((ErrorType) result[0]));
