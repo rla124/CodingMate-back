@@ -86,13 +86,17 @@ public class CodeService {
 
 
         Object[] result = compilerServiceV2.runCode(executeCode, input, code.get().getAnswer());
-        if (result[0] instanceof ErrorType) {
+
+		Object resultType = result[0];
+		Object output = (String) result[1];
+
+		if (resultType instanceof ErrorType) {
             return ResponseEntity
                     .badRequest()
-                    .body(GlobalResponseDto.of((ErrorType) result[0]));
+                    .body(GlobalResponseDto.of((ErrorType) resultType));
         }
-        SuccessType successType = (SuccessType) result[0];
-        String output = (String) result[1];
+
+        SuccessType successType = (SuccessType) resultType;
 
         return ResponseEntity.ok(GlobalResponseDto.of(successType, output));
     }
