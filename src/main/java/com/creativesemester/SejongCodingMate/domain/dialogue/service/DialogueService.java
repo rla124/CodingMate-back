@@ -10,6 +10,8 @@ import com.creativesemester.SejongCodingMate.global.response.GlobalResponseDto;
 import com.creativesemester.SejongCodingMate.global.response.ErrorType;
 import com.creativesemester.SejongCodingMate.global.response.SuccessType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class DialogueService {
+	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
     private final StoryRepository storyRepository;
     private final DialogueRepository dialogueRepository;
 
@@ -34,7 +38,8 @@ public class DialogueService {
                     .body(GlobalResponseDto.of(ErrorType.STORY_NOT_FOUND));
         }
 
-        dialogueRepository.save(Dialogue.of(dialogueRequestDto, story.get()));
+		Long newId = redisTemplate.opsForValue().increment("Dialogue:ID");
+        dialogueRepository.save(Dialogue.of(newId, dialogueRequestDto, story.get()));
 
         return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.CHAPTER_CREATE_SUCCESS));
     }

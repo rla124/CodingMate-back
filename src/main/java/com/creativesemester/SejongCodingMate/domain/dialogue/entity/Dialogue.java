@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 
 
 @RedisHash("Dialogue")
@@ -19,6 +20,9 @@ import org.springframework.data.redis.core.RedisHash;
 public class Dialogue {
 
 	@Id
+	private Long id;
+
+	@Indexed
 	private Long storyId;
 
 	private String speaker;
@@ -32,8 +36,9 @@ public class Dialogue {
 	private String characterImage;
 
 
-	public static Dialogue of(DialogueRequestDto dialogueRequestDto, Story story) {
+	public static Dialogue of(Long id, DialogueRequestDto dialogueRequestDto, Story story) {
 		return Dialogue.builder()
+			.id(id)
 			.storyId(story.getId())
 			.speaker(dialogueRequestDto.getSpeaker())
 			.text(dialogueRequestDto.getText())
