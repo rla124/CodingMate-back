@@ -15,11 +15,13 @@ import java.util.concurrent.TimeUnit;
 public class CompilerServiceV2 {
 	private static final long TIMEOUT_SECONDS = 10;
 	private static final String PYTHON_EXECUTOR = "python3";
+	private static final String TEMP_FILE_NAME = "main";
+	private static final String TEMP_FILE_EXTENSION = ".py";
 
 	public Object[] runCode(String executeCode, String input, String answer) {
 		Path tempFile = null;
 		try {
-			tempFile = Files.createTempFile("main", ".py");
+			tempFile = Files.createTempFile(TEMP_FILE_NAME, TEMP_FILE_EXTENSION);
 			Files.write(tempFile, executeCode.getBytes());
 
 			ProcessBuilder processBuilder = new ProcessBuilder(PYTHON_EXECUTOR, tempFile.toString())
