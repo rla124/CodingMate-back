@@ -5,7 +5,6 @@ import com.creativesemester.SejongCodingMate.domain.code.dto.request.CodeRequest
 import com.creativesemester.SejongCodingMate.domain.code.entity.Code;
 import com.creativesemester.SejongCodingMate.domain.code.repository.CodeRepository;
 import com.creativesemester.SejongCodingMate.domain.member.entity.Member;
-import com.creativesemester.SejongCodingMate.domain.member.repository.MemberRepository;
 import com.creativesemester.SejongCodingMate.domain.story.entity.Story;
 import com.creativesemester.SejongCodingMate.domain.story.repository.StoryRepository;
 import com.creativesemester.SejongCodingMate.global.response.ErrorType;
@@ -24,8 +23,7 @@ public class CodeService {
 
     private final StoryRepository storyRepository;
     private final CodeRepository codeRepository;
-    private final CompilerService compilerService;
-    private final MemberRepository memberRepository;
+    private final CompilerServiceV2 compilerServiceV2;
 
     // 1. Code 생성
     @Transactional
@@ -87,14 +85,18 @@ public class CodeService {
         System.out.println(executeCode);
 
 
-        Object[] result = compilerService.runCode(executeCode, input, code.get().getAnswer());
-        if (result[0].getClass() == ErrorType.class) {
+        Object[] result = compilerServiceV2.runCode(executeCode, input, code.get().getAnswer());
+
+		Object resultType = result[0];
+		Object output = (String) result[1];
+
+		if (resultType instanceof ErrorType) {
             return ResponseEntity
                     .badRequest()
-                    .body(GlobalResponseDto.of((ErrorType) result[0]));
+                    .body(GlobalResponseDto.of((ErrorType) resultType));
         }
-        SuccessType successType = (SuccessType) result[0];
-        String output = (String) result[1];
+
+        SuccessType successType = (SuccessType) resultType;
 
         return ResponseEntity.ok(GlobalResponseDto.of(successType, output));
     }
