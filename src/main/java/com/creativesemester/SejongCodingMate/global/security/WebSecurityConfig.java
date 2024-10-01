@@ -76,6 +76,9 @@ public class WebSecurityConfig {
 			authorize ->
 				authorize
                 .requestMatchers("/api/member/**").permitAll()
+				.requestMatchers("/api/chapter").permitAll()
+				.requestMatchers("/api/dialogue").permitAll()
+				.requestMatchers("/api/story").permitAll()
                 .anyRequest().authenticated())
 				// 기본 설정인 Session 방식은 사용하지 않고 JWT 방식을 사용하기 위한 설정
 			.sessionManagement(

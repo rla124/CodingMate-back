@@ -12,24 +12,25 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/chapter")
 public class ChapterController {
 
     private final ChapterService chapterService;
 
     // 1. Chapter 생성 (POST)
-    @PostMapping("/api/chapter")
-    public ResponseEntity<GlobalResponseDto> createChapter (@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody ChapterRequestDto chapterRequestDto){
-        return chapterService.createChapter(userDetails.getMember(), chapterRequestDto);
+    @PostMapping
+    public ResponseEntity<GlobalResponseDto> createChapter (@RequestBody ChapterRequestDto chapterRequestDto){
+        return chapterService.createChapter(chapterRequestDto);
     }
 
     // 2. Chapter 조회 (GET)
-    @GetMapping("/api/chapter/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<GlobalResponseDto> getChapter (@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long id){
         return chapterService.getChapter(userDetails.getMember(), id);
     }
 
     // 3. Chapter 저장 (POST)
-    @PostMapping("/api/chapter/save")
+    @PostMapping("/save")
     public ResponseEntity<GlobalResponseDto> saveChapter (@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody SaveChapterRequestDto saveChapterRequestDto) {
         return chapterService.saveChapter(userDetails.getMember(), saveChapterRequestDto);
     }

@@ -12,30 +12,31 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/story")
 public class StoryController {
 
     private final StoryService storyService;
 
     // 1. 스토리 생성 (POST)
-    @PostMapping("/api/story")
-    public ResponseEntity<GlobalResponseDto> createStory (@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody StoryRequestDto storyRequestDto){
-        return storyService.createStory(userDetails.getMember(), storyRequestDto);
+    @PostMapping
+    public ResponseEntity<GlobalResponseDto> createStory (@RequestBody StoryRequestDto storyRequestDto){
+        return storyService.createStory(storyRequestDto);
     }
 
     // 2. 스토리 전체 조회 (GET)
-    @GetMapping("/api/story")
+    @GetMapping
     public ResponseEntity<GlobalResponseDto> getStoryList (@AuthenticationPrincipal UserDetailsImpl userDetails){
         return storyService.getStoryList(userDetails.getMember());
     }
 
     // 3. 스토리 단일 조회 (GET)
-    @GetMapping("/api/story/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<GlobalResponseDto> getStory (@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable Long id){
         return storyService.getStory(userDetails.getMember(),id);
     }
 
     // 4. 스토리 저장 (POST)
-    @PostMapping("/api/story/save")
+    @PostMapping("/save")
     public ResponseEntity<GlobalResponseDto> saveStory (@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody SaveStoryRequestDto saveStoryRequestDto){
         return storyService.saveStory(userDetails.getMember(), saveStoryRequestDto);
     }

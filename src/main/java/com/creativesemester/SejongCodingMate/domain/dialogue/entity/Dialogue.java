@@ -7,48 +7,45 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 
-import jakarta.persistence.*;
 
-@Entity
+@RedisHash("Dialogue")
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Dialogue {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "STORY_ID")
-    private Story story;
+	@Indexed
+	private Long storyId;
 
-    @Column(nullable = false)
-    private String speaker;
+	private String speaker;
 
-    @Column(nullable = false)
-    private String text;
+	private String text;
 
-    @Column(nullable = false)
-    private Long screenEffect;
+	private Long screenEffect;
 
-    @Column(nullable = false)
-    private Long soundEffect;
+	private Long soundEffect;
 
-    @Column(nullable = false)
-    private String characterImage;
+	private String characterImage;
 
-    public static Dialogue of(DialogueRequestDto dialogueRequestDto, Story story) {
-        return Dialogue.builder()
-                .story(story)
-                .speaker(dialogueRequestDto.getSpeaker())
-                .text(dialogueRequestDto.getText())
-                .screenEffect(dialogueRequestDto.getScreenEffect())
-                .soundEffect(dialogueRequestDto.getSoundEffect())
-                .characterImage(dialogueRequestDto.getCharacterImage())
-                .build();
-    }
+
+	public static Dialogue of(Long id, DialogueRequestDto dialogueRequestDto, Story story) {
+		return Dialogue.builder()
+			.id(id)
+			.storyId(story.getId())
+			.speaker(dialogueRequestDto.getSpeaker())
+			.text(dialogueRequestDto.getText())
+			.screenEffect(dialogueRequestDto.getScreenEffect())
+			.soundEffect(dialogueRequestDto.getSoundEffect())
+			.characterImage(dialogueRequestDto.getCharacterImage())
+			.build();
+	}
 
 }

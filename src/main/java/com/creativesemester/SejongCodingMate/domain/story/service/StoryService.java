@@ -41,7 +41,7 @@ public class StoryService {
 
     // 1. Story 등록 (POST)
     @Transactional
-    public ResponseEntity<GlobalResponseDto> createStory(Member member, StoryRequestDto storyRequestDto) {
+    public ResponseEntity<GlobalResponseDto> createStory(StoryRequestDto storyRequestDto) {
 
         Optional<Chapter> chapter = chapterRepository.findById(storyRequestDto.getChapterId());
         storyRepository.save(Story.of(storyRequestDto, chapter.get()));
