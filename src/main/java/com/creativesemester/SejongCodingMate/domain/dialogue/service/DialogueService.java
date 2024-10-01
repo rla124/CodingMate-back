@@ -24,7 +24,7 @@ public class DialogueService {
 
     // 1. 대화 생성 (POST)
     @Transactional
-    public ResponseEntity<GlobalResponseDto> createDialogue(Member member, DialogueRequestDto dialogueRequestDto) {
+    public ResponseEntity<GlobalResponseDto> createDialogue(DialogueRequestDto dialogueRequestDto) {
 
         Optional<Story> story = storyRepository.findById(dialogueRequestDto.getStoryId());
 

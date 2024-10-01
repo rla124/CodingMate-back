@@ -25,7 +25,7 @@ public class ChapterService {
 
     // 1. Chapter 생성 (POST)
     @Transactional
-    public ResponseEntity<GlobalResponseDto> createChapter(Member member, ChapterRequestDto chapterRequestDto) {
+    public ResponseEntity<GlobalResponseDto> createChapter(ChapterRequestDto chapterRequestDto) {
 
         chapterRepository.save(Chapter.of(chapterRequestDto));
         return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.CHAPTER_CREATE_SUCCESS));
