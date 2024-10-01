@@ -11,19 +11,19 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/dialogue")
 public class DialogueController {
 
     private final DialogueService dialogueService;
 
     // 1. 대화 생성 (POST)
-    @PostMapping("/api/dialogue")
-    public ResponseEntity<GlobalResponseDto> createDialogue (@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                             @RequestBody DialogueRequestDto dialogueRequestDto){
-        return dialogueService.createDialogue(userDetails.getMember(), dialogueRequestDto);
+    @PostMapping
+    public ResponseEntity<GlobalResponseDto> createDialogue (@RequestBody DialogueRequestDto dialogueRequestDto){
+        return dialogueService.createDialogue(dialogueRequestDto);
     }
 
     // 2. 대화 단일 조회 (GET)
-    @GetMapping("/api/dialogue/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<GlobalResponseDto> getDialogue (@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                           @PathVariable Long id){
         return dialogueService.getDialogue(userDetails.getMember(), id);
