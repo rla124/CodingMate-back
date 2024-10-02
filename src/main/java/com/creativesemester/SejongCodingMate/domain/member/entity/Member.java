@@ -3,6 +3,7 @@ package com.creativesemester.SejongCodingMate.domain.member.entity;
 
 import com.creativesemester.SejongCodingMate.domain.chapter.entity.Chapter;
 import com.creativesemester.SejongCodingMate.domain.story.entity.Story;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,36 +30,46 @@ public class Member {
    @JoinColumn(name = "CHAPTER_ID")
    private Chapter chapter;
 
+   @NotNull
    @Column(unique = true, nullable = false)
    private String memberId;
 
+   @NotNull
    @Column(nullable = false)
    private String password;
 
    @Column(nullable = false)
    private Boolean hasTemporaryPassword;
 
-   @Column(nullable = false)
-   private String name;
+   @NotNull
+   @Enumerated(EnumType.STRING)
+   private Role role;
 
 
-   public static Member of (String memberId, String password, Story story, Chapter chapter, Boolean hasTemporaryPassword, String name){
+   public static Member createMemberHavingUserRole (String memberId, String password, Story story, Chapter chapter, Boolean hasTemporaryPassword){
       return Member.builder()
               .memberId(memberId)
               .password(password)
               .story(story)
               .chapter(chapter)
               .hasTemporaryPassword(hasTemporaryPassword)
-              .name(name)
+		      .role(Role.USER)
               .build();
    }
 
+	public static Member createMemberHavingAdiminRole (String memberId, String password, Story story, Chapter chapter, Boolean hasTemporaryPassword){
+		return Member.builder()
+			.memberId(memberId)
+			.password(password)
+			.story(story)
+			.chapter(chapter)
+			.hasTemporaryPassword(hasTemporaryPassword)
+			.role(Role.ADMIN)
+			.build();
+	}
+
    public void changePassword(String newPassword) {
       this.password = newPassword;
-   }
-
-   public void changeName(String newName) {
-      this.name = newName;
    }
 
    public void changeStory(Story story){

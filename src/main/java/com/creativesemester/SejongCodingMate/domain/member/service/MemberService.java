@@ -61,7 +61,15 @@ public class MemberService {
 		}
 
 		String encodedPassword = passwordEncoder.encode(memberRequestDto.getPassword());
-		memberRepository.save(Member.of(memberRequestDto.getMemberId(), encodedPassword, story.get(), chapter.get(), false, "User"));
+
+		System.out.println(memberRequestDto.getIsAdmin());
+		if (memberRequestDto.getIsAdmin()) {
+			System.out.println(memberRequestDto.getIsAdmin());
+			memberRepository.save(Member.createMemberHavingAdiminRole(memberRequestDto.getMemberId(), encodedPassword, story.get(), chapter.get(), false));
+		} else {
+			memberRepository.save(Member.createMemberHavingUserRole(memberRequestDto.getMemberId(), encodedPassword, story.get(), chapter.get(), false));
+		}
+
 		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.SIGN_UP_SUCCESS));
 	}
 
@@ -79,14 +87,14 @@ public class MemberService {
 			return ResponseEntity.ok(GlobalResponseDto.of(ErrorType.PASSWORD_MISMATCH));
 		}
 
-		final String loginAccessToken = jwtUtil.createAccessToken(memberRequestDto.getMemberId());
+		final String loginAccessToken = jwtUtil.createAccessToken(memberRequestDto.getMemberId(), member.getRole());
 		final String loginRefreshToken = jwtUtil.createRefreshToken(memberRequestDto.getMemberId());
 
 		jwtUtil.saveRefreshTokenToRedis(member.getId(), loginRefreshToken);
 
 		return ResponseEntity.ok(GlobalResponseDto.of(SuccessType.LOG_IN_SUCCESS,
 			MemberResponseDto.of(member.getStory().getId(), member.getChapter().getId(),
-				member.getHasTemporaryPassword(), member.getName(), loginAccessToken, loginRefreshToken)));
+				member.getHasTemporaryPassword(), loginAccessToken, loginRefreshToken)));
 	}
 
 	@Transactional
@@ -162,7 +170,7 @@ public class MemberService {
 				.body(GlobalResponseDto.of(ErrorType.REFRESH_TOKEN_MISMATCHING, false));
 		}
 
-		final String newAccessToken = jwtUtil.createAccessToken(loginMember.getMemberId());
+		final String newAccessToken = jwtUtil.createAccessToken(loginMember.getMemberId(), loginMember.getRole());
 		final String newRefreshToken = jwtUtil.createRefreshToken(loginMember.getMemberId());
 
 		RefreshToken updatedRefreshToken = optionalRefreshToken.get();

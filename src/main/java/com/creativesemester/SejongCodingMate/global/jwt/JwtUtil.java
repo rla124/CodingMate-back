@@ -1,6 +1,7 @@
 package com.creativesemester.SejongCodingMate.global.jwt;
 
 import com.creativesemester.SejongCodingMate.domain.member.entity.RefreshToken;
+import com.creativesemester.SejongCodingMate.domain.member.entity.Role;
 import com.creativesemester.SejongCodingMate.domain.member.repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -55,12 +56,16 @@ public class JwtUtil {
 		return null;
 	}
 
-	public String createAccessToken(String userEmail) {
+	public String createAccessToken(String userEmail, Role role) {
 		Date date = new Date();
+		Claims claims = Jwts.claims();
+		claims.put("email", userEmail);
+		claims.put("role", role.getRole());
 
 		return BEARER_PREFIX +
 			Jwts.builder()
-				.setSubject(userEmail)
+				.setSubject("MemberInfo")
+				.setClaims(claims)
 				.setExpiration(new Date(date.getTime() + ACCESS_TOKEN_TIME))
 				.setIssuedAt(date)
 				.signWith(key, signatureAlgorithm)
@@ -99,7 +104,7 @@ public class JwtUtil {
 		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 	}
 
-	public Authentication createAuthentication(String userEmail) {
+	public Authentication createAuthentication(String userEmail, Role role) {
 		UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 		return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 	}

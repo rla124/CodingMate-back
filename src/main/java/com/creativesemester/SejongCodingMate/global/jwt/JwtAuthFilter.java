@@ -1,5 +1,6 @@
 package com.creativesemester.SejongCodingMate.global.jwt;
 
+import com.creativesemester.SejongCodingMate.domain.member.entity.Role;
 import com.creativesemester.SejongCodingMate.global.response.ErrorType;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -39,10 +40,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        Claims info = jwtUtil.getUserInfoFromToken(token);
 
         try {
-            setAuthentication(info.getSubject());
+            setAuthentication(token); // Claims.getSubject() : accessToken 만들 때의 .setSubject("MemberInfo") 반환
         } catch (UsernameNotFoundException e) {
             request.setAttribute("exception", ErrorType.USER_NOT_FOUND);
         }
@@ -50,10 +50,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void setAuthentication(String userEmail) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Authentication authentication = jwtUtil.createAuthentication(userEmail);
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-    }
+	private void setAuthentication(String token) {
+		Claims info = jwtUtil.getUserInfoFromToken(token);
+		String userEmail = info.get("email", String.class);
+		Role role = Role.of(info.get("role", String.class));
+		SecurityContext context = SecurityContextHolder.createEmptyContext();
+		Authentication authentication = jwtUtil.createAuthentication(userEmail, role);
+		context.setAuthentication(authentication);
+		SecurityContextHolder.setContext(context);
+	}
+
 }
