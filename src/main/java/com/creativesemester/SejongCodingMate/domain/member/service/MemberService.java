@@ -62,9 +62,7 @@ public class MemberService {
 
 		String encodedPassword = passwordEncoder.encode(memberRequestDto.getPassword());
 
-		System.out.println(memberRequestDto.getIsAdmin());
 		if (memberRequestDto.getIsAdmin()) {
-			System.out.println(memberRequestDto.getIsAdmin());
 			memberRepository.save(Member.createMemberHavingAdiminRole(memberRequestDto.getMemberId(), encodedPassword, story.get(), chapter.get(), false));
 		} else {
 			memberRepository.save(Member.createMemberHavingUserRole(memberRequestDto.getMemberId(), encodedPassword, story.get(), chapter.get(), false));

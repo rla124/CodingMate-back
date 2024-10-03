@@ -18,46 +18,46 @@ import jakarta.persistence.*;
 @AllArgsConstructor
 public class Member {
 
-   @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-   @OneToOne
-   @JoinColumn(name = "STORY_ID")
-   private Story story;
+	@OneToOne
+	@JoinColumn(name = "STORY_ID")
+	private Story story;
 
-   @OneToOne
-   @JoinColumn(name = "CHAPTER_ID")
-   private Chapter chapter;
+	@OneToOne
+	@JoinColumn(name = "CHAPTER_ID")
+	private Chapter chapter;
 
-   @NotNull
-   @Column(unique = true, nullable = false)
-   private String memberId;
+	@NotNull
+	@Column(unique = true, nullable = false)
+	private String memberId;
 
-   @NotNull
-   @Column(nullable = false)
-   private String password;
+	@NotNull
+	@Column(nullable = false)
+	private String password;
 
-   @Column(nullable = false)
-   private Boolean hasTemporaryPassword;
+	@Column(nullable = false)
+	private Boolean hasTemporaryPassword;
 
-   @NotNull
-   @Enumerated(EnumType.STRING)
-   private Role role;
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	private Role role;
 
 
-   public static Member createMemberHavingUserRole (String memberId, String password, Story story, Chapter chapter, Boolean hasTemporaryPassword){
-      return Member.builder()
-              .memberId(memberId)
-              .password(password)
-              .story(story)
-              .chapter(chapter)
-              .hasTemporaryPassword(hasTemporaryPassword)
-		      .role(Role.USER)
-              .build();
-   }
+	public static Member createMemberHavingUserRole(String memberId, String password, Story story, Chapter chapter, Boolean hasTemporaryPassword) {
+		return Member.builder()
+			.memberId(memberId)
+			.password(password)
+			.story(story)
+			.chapter(chapter)
+			.hasTemporaryPassword(hasTemporaryPassword)
+			.role(Role.USER)
+			.build();
+	}
 
-	public static Member createMemberHavingAdiminRole (String memberId, String password, Story story, Chapter chapter, Boolean hasTemporaryPassword){
+	public static Member createMemberHavingAdiminRole(String memberId, String password, Story story, Chapter chapter, Boolean hasTemporaryPassword) {
 		return Member.builder()
 			.memberId(memberId)
 			.password(password)
@@ -68,19 +68,19 @@ public class Member {
 			.build();
 	}
 
-   public void changePassword(String newPassword) {
-      this.password = newPassword;
-   }
+	public void changePassword(String newPassword) {
+		this.password = newPassword;
+	}
 
-   public void changeStory(Story story){
-      this.story = story;
-   }
+	public void changeStory(Story story) {
+		this.story = story;
+	}
 
-   public void changeChapter(Chapter chapter){
-      this.chapter = chapter;
-   }
+	public void changeChapter(Chapter chapter) {
+		this.chapter = chapter;
+	}
 
-   public void changeHasTemporaryPassword(Boolean hasTemporaryPassword){
-      this.hasTemporaryPassword = hasTemporaryPassword;
-   }
+	public void changeHasTemporaryPassword(Boolean hasTemporaryPassword) {
+		this.hasTemporaryPassword = hasTemporaryPassword;
+	}
 }

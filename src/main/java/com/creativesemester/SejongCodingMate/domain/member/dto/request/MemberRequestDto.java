@@ -10,10 +10,10 @@ public class MemberRequestDto {
 	@NotNull
 	private Boolean isAdmin;
 
-    @NotBlank(message = "ID를 입력해주세요.")
-    private String memberId;
+	@NotBlank(message = "ID를 입력해주세요.")
+	private String memberId;
 
-    @NotBlank(message = "비밀번호를 입력해주세요.")
-    private String password;
+	@NotBlank(message = "비밀번호를 입력해주세요.")
+	private String password;
 
 }

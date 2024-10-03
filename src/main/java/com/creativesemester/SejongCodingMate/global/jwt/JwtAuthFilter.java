@@ -21,34 +21,34 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+	private final JwtUtil jwtUtil;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException,  IOException {
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String token = jwtUtil.resolveToken(request);
+		String token = jwtUtil.resolveToken(request);
 
-        if (token == null) {
-            request.setAttribute("exception", ErrorType.TOKEN_NOT_FOUND);
-            filterChain.doFilter(request, response);
-            return;
-        }
+		if (token == null) {
+			request.setAttribute("exception", ErrorType.TOKEN_NOT_FOUND);
+			filterChain.doFilter(request, response);
+			return;
+		}
 
-        if (!jwtUtil.validateToken(token)) {
-            request.setAttribute("exception", ErrorType.NOT_VALID_TOKEN);
-            filterChain.doFilter(request, response);
-            return;
-        }
+		if (!jwtUtil.validateToken(token)) {
+			request.setAttribute("exception", ErrorType.NOT_VALID_TOKEN);
+			filterChain.doFilter(request, response);
+			return;
+		}
 
 
-        try {
-            setAuthentication(token); // Claims.getSubject() : accessToken 만들 때의 .setSubject("MemberInfo") 반환
-        } catch (UsernameNotFoundException e) {
-            request.setAttribute("exception", ErrorType.USER_NOT_FOUND);
-        }
+		try {
+			setAuthentication(token); // Claims.getSubject() : accessToken 만들 때의 .setSubject("MemberInfo") 반환
+		} catch (UsernameNotFoundException e) {
+			request.setAttribute("exception", ErrorType.USER_NOT_FOUND);
+		}
 
-        filterChain.doFilter(request, response);
-    }
+		filterChain.doFilter(request, response);
+	}
 
 	private void setAuthentication(String token) {
 		Claims info = jwtUtil.getUserInfoFromToken(token);
