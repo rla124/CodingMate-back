@@ -76,6 +76,10 @@ public class WebSecurityConfig {
 			authorize ->
 				authorize
                 .requestMatchers("/api/member/**").permitAll()
+				.requestMatchers("/api/chapter").hasRole("ADMIN")
+				.requestMatchers("/api/story").hasRole("ADMIN")
+				.requestMatchers("/api/dialogue").hasRole("ADMIN")
+				.requestMatchers("/api/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated())
 				// 기본 설정인 Session 방식은 사용하지 않고 JWT 방식을 사용하기 위한 설정
 			.sessionManagement(
