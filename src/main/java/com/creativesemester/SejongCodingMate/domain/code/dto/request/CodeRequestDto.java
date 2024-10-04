@@ -1,5 +1,6 @@
 package com.creativesemester.SejongCodingMate.domain.code.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,19 +8,19 @@ import jakarta.validation.constraints.NotBlank;
 @Getter
 public class CodeRequestDto {
 
-    @NotBlank()
+    @NotNull
     private String code;
-    @NotBlank()
+    @NotNull
     private String text;
-    @NotBlank()
+    @NotNull
     private String hint;
-    @NotBlank()
+    @NotNull
     private String answer;
-    @NotBlank()
+    @NotNull
     private String characterImage;
-    @NotBlank()
+    @NotNull
     private String itemImage;
-    @NotBlank()
+    @NotNull
     private String input;
 
     @NotBlank()

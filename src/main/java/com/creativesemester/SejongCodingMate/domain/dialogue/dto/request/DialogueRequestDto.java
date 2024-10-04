@@ -1,5 +1,6 @@
 package com.creativesemester.SejongCodingMate.domain.dialogue.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,15 +8,15 @@ import jakarta.validation.constraints.NotBlank;
 @Getter
 public class DialogueRequestDto {
 
-    @NotBlank()
+    @NotNull
     private Long storyId;
     @NotBlank()
     private String speaker;
     @NotBlank()
     private String text;
-    @NotBlank()
+    @NotNull
     private Long soundEffect;
-    @NotBlank()
+    @NotNull
     private Long screenEffect;
     @NotBlank()
     private String characterImage;

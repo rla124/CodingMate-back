@@ -1,5 +1,6 @@
 package com.creativesemester.SejongCodingMate.domain.story.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,16 +8,16 @@ import jakarta.validation.constraints.NotBlank;
 @Getter
 public class StoryRequestDto {
 
-    @NotBlank()
+    @NotNull
     private Long chapterId;
 
-    @NotBlank()
+    @NotNull
     private Long nextId;
 
-    @NotBlank()
+    @NotNull
     private Long previousId;
 
-    @NotBlank()
+    @NotNull
     private Long formatId;
 
     @NotBlank()

@@ -1,13 +1,13 @@
 package com.creativesemester.SejongCodingMate.domain.chapter.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-import jakarta.validation.constraints.NotBlank;
 
 @Getter
 public class SaveChapterRequestDto {
 
-    @NotBlank()
+    @NotNull
     private Long nextChapterId;
 
 }

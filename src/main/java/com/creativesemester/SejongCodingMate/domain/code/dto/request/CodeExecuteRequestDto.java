@@ -1,5 +1,6 @@
 package com.creativesemester.SejongCodingMate.domain.code.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import jakarta.validation.constraints.NotBlank;
@@ -12,7 +13,7 @@ public class CodeExecuteRequestDto {
     @NotBlank()
     private String input;
 
-    @NotBlank()
+    @NotNull
     private Long storyId;
 
 }

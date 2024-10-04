@@ -1,5 +1,6 @@
 package com.creativesemester.SejongCodingMate.domain.quiz.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import jakarta.validation.constraints.NotBlank;
@@ -15,11 +16,11 @@ public class QuizRequestDto {
     private String description;
 
 
-    @NotBlank()
+    @NotNull
     private Long storyId;
-    @NotBlank()
+    @NotNull
     private Long quizId;
-    @NotBlank()
+    @NotNull
     private Long formatId;
 
 }

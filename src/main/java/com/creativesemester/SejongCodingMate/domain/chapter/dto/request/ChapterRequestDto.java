@@ -1,5 +1,6 @@
 package com.creativesemester.SejongCodingMate.domain.chapter.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,13 +8,13 @@ import jakarta.validation.constraints.NotBlank;
 @Getter
 public class ChapterRequestDto {
 
-    @NotBlank(message = "챕터 번호를 알려주세요.")
+    @NotNull(message = "챕터 번호를 알려주세요.")
     private Long chapterNumber;
 
-    @NotBlank(message = "첫번째 스토리 ID를 알려주세요.")
+    @NotNull(message = "첫번째 스토리 ID를 알려주세요.")
     private Long firstStoryId;
 
-    @NotBlank(message = "첫번째 스토리 ID를 알려주세요.")
+    @NotNull(message = "첫번째 스토리 ID를 알려주세요.")
     private Long lastStoryId;
 
     @NotBlank(message = "챕터 제목을 알려주세요.")
